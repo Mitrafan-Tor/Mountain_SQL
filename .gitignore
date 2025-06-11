@@ -18,13 +18,10 @@ __pycache__/
 .Python
 
 # Virtual environment
+.env
 venv/
 ENV/
 env/
-
-# Database
-#*.sqlite3
-#*.db
 
 # Static files at development
 /static_collected/
