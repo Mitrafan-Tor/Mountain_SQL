@@ -1,21 +1,35 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
 from .data_manager import PerevalManager
-from django.shortcuts import get_object_or_404
-from .models import PerevalAdded
 from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class SubmitDataAPI(APIView):
-    parser_classes = [JSONParser]
-
-    # POST /submitData/
-    def post(self, request):
-        manager = PerevalManager()
-        result = manager.submit_data(request.data)
-        return Response(result, status=result['status'])
-
+    @swagger_auto_schema(
+        operation_description="Добавление нового перевала",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['title', 'user', 'coords', 'level'],
+            properties={
+                'beauty_title': openapi.Schema(type=openapi.TYPE_STRING),
+                'title': openapi.Schema(type=openapi.TYPE_STRING),
+                # ... остальные поля ...
+            },
+        ),
+        responses={
+            200: openapi.Response('Success', examples={
+                'application/json': {
+                    "status": 200,
+                    "message": None,
+                    "id": 42
+                }
+            }),
+            400: 'Bad Request',
+            500: 'Server Error'
+        }
+    )
     # GET /submitData/<id>/
     def get(self, request, pk=None):
         if pk:
