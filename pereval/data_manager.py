@@ -1,115 +1,121 @@
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from .models import User, Coords, Level, PerevalAdded, Image, PerevalImage
 import os
-from django.core.exceptions import ValidationError
-from .models import *
 
 
 class PerevalManager:
-    @staticmethod
-    def get_db_config():
-        """Получение конфигурации БД из переменных окружения"""
-        return {
-            'host': os.getenv('FSTR_DB_HOST', 'localhost'),
-            'port': os.getenv('FSTR_DB_PORT', '5432'),
-            'login': os.getenv('FSTR_DB_LOGIN', 'postgres'),
-            'password': os.getenv('FSTR_DB_PASS', 'postgres'),
-        }
+    # ... существующие методы ...
 
-    @staticmethod
-    def validate_data(data):
-        """Валидация входящих данных"""
-        required_fields = [
-            'beauty_title', 'title', 'other_titles', 'connect',
-            'user', 'coords', 'level', 'images'
-        ]
-
-        for field in required_fields:
-            if field not in data:
-                raise ValidationError(f'Отсутствует обязательное поле: {field}')
-
-        user_fields = ['email', 'fam', 'name', 'otc', 'phone']
-        for field in user_fields:
-            if field not in data['user']:
-                raise ValidationError(f'Отсутствует обязательное поле пользователя: {field}')
-
-        coord_fields = ['latitude', 'longitude', 'height']
-        for field in coord_fields:
-            if field not in data['coords']:
-                raise ValidationError(f'Отсутствует обязательное поле координат: {field}')
-
-        level_fields = ['winter', 'summer', 'autumn', 'spring']
-        for field in level_fields:
-            if field not in data['level']:
-                raise ValidationError(f'Отсутствует обязательное поле уровня сложности: {field}')
-
-        if not isinstance(data['images'], list) or len(data['images']) == 0:
-            raise ValidationError('Должна быть хотя бы одна фотография')
-
-    def submit_data(self, data):
-        """Основной метод для добавления данных о перевале"""
+    def get_pereval_by_id(self, pereval_id):
         try:
-            # Валидация данных
-            self.validate_data(data)
-
-            # Получаем или создаем пользователя
-            user, created = User.objects.get_or_create(
-                email=data['user']['email'],
-                defaults={
-                    'fam': data['user']['fam'],
-                    'name': data['user']['name'],
-                    'otc': data['user']['otc'],
-                    'phone': data['user']['phone'],
-                }
-            )
-
-            # Создаем координаты
-            coords = Coords.objects.create(
-                latitude=data['coords']['latitude'],
-                longitude=data['coords']['longitude'],
-                height=data['coords']['height'],
-            )
-
-            # Создаем уровень сложности
-            level = Level.objects.create(
-                winter=data['level']['winter'],
-                summer=data['level']['summer'],
-                autumn=data['level']['autumn'],
-                spring=data['level']['spring'],
-            )
-
-            # Создаем перевал
-            pereval = PerevalAdded.objects.create(
-                beauty_title=data['beauty_title'],
-                title=data['title'],
-                other_titles=data.get('other_titles', ''),
-                connect=data.get('connect', ''),
-                user=user,
-                coords=coords,
-                level=level,
-            )
-
-            # Добавляем изображения
-            for img_data in data['images']:
-                image = Image.objects.create(
-                    data=img_data['data'].encode(),
-                    title=img_data['title'],
-                )
-                PerevalImage.objects.create(pereval=pereval, image=image)
-
+            pereval = PerevalAdded.objects.get(id=pereval_id)
             return {
-                'status': 200,
-                'message': None,
                 'id': pereval.id,
+                'beauty_title': pereval.beauty_title,
+                'title': pereval.title,
+                'other_titles': pereval.other_titles,
+                'connect': pereval.connect,
+                'add_time': pereval.add_time,
+                'status': pereval.status,
+                'user': {
+                    'email': pereval.user.email,
+                    'fam': pereval.user.fam,
+                    'name': pereval.user.name,
+                    'otc': pereval.user.otc,
+                    'phone': pereval.user.phone
+                },
+                'coords': {
+                    'latitude': pereval.coords.latitude,
+                    'longitude': pereval.coords.longitude,
+                    'height': pereval.coords.height
+                },
+                'level': {
+                    'winter': pereval.level.winter,
+                    'summer': pereval.level.summer,
+                    'autumn': pereval.level.autumn,
+                    'spring': pereval.level.spring
+                },
+                'images': [{'title': img.title, 'data': str(img.img)}
+                           for img in pereval.images.all()],
+                'status': 200,
+                'message': None
             }
+        except ObjectDoesNotExist:
+            return {'status': 404, 'message': 'Перевал не найден', 'id': None}
 
-        except ValidationError as e:
-            return {
-                'status': 400,
-                'message': str(e),
-                'id': None,
-            }
+    def update_pereval(self, pereval_id, data):
+        try:
+            pereval = PerevalAdded.objects.get(id=pereval_id)
+
+            if pereval.status != 'new':
+                return {'state': 0, 'message': 'Редактирование запрещено: запись не в статусе "new"'}
+
+            # Проверяем, что пользователь не меняет свои данные
+            user_data = data.get('user', {})
+            if any(key in user_data for key in ['email', 'fam', 'name', 'otc', 'phone']):
+                return {'state': 0, 'message': 'Редактирование персональных данных запрещено'}
+
+            # Обновляем координаты
+            if 'coords' in data:
+                coords = pereval.coords
+                coords_data = data['coords']
+                coords.latitude = coords_data.get('latitude', coords.latitude)
+                coords.longitude = coords_data.get('longitude', coords.longitude)
+                coords.height = coords_data.get('height', coords.height)
+                coords.save()
+
+            # Обновляем уровень сложности
+            if 'level' in data:
+                level = pereval.level
+                level_data = data['level']
+                level.winter = level_data.get('winter', level.winter)
+                level.summer = level_data.get('summer', level.summer)
+                level.autumn = level_data.get('autumn', level.autumn)
+                level.spring = level_data.get('spring', level.spring)
+                level.save()
+
+            # Обновляем основные данные перевала
+            pereval.beauty_title = data.get('beauty_title', pereval.beauty_title)
+            pereval.title = data.get('title', pereval.title)
+            pereval.other_titles = data.get('other_titles', pereval.other_titles)
+            pereval.connect = data.get('connect', pereval.connect)
+            pereval.save()
+
+            return {'state': 1, 'message': 'Запись успешно обновлена'}
+
+        except ObjectDoesNotExist:
+            return {'state': 0, 'message': 'Перевал не найден'}
         except Exception as e:
-            return {
-                'status': 500,
-                'message': f'Ошибка при сохранении данных: {str(e)}',
-                'id': None,
-            }
+            return {'state': 0, 'message': str(e)}
+
+    def get_perevals_by_email(self, email):
+        try:
+            user = User.objects.get(email=email)
+            perevals = PerevalAdded.objects.filter(user=user)
+
+            result = []
+            for pereval in perevals:
+                result.append({
+                    'id': pereval.id,
+                    'beauty_title': pereval.beauty_title,
+                    'title': pereval.title,
+                    'other_titles': pereval.other_titles,
+                    'connect': pereval.connect,
+                    'add_time': pereval.add_time,
+                    'status': pereval.status,
+                    'coords': {
+                        'latitude': pereval.coords.latitude,
+                        'longitude': pereval.coords.longitude,
+                        'height': pereval.coords.height
+                    },
+                    'level': {
+                        'winter': pereval.level.winter,
+                        'summer': pereval.level.summer,
+                        'autumn': pereval.level.autumn,
+                        'spring': pereval.level.spring
+                    }
+                })
+
+            return {'status': 200, 'message': None, 'perevals': result}
+        except User.DoesNotExist:
+            return {'status': 404, 'message': 'Пользователь с таким email не найден', 'perevals': []}
