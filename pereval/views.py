@@ -53,8 +53,8 @@ class SubmitDataAPI(APIView):
     )
     def post(self, request):
         manager = PerevalManager()
-        result = manager.submit_data(request.data)
-        return Response(result, status=result['status'])
+        result = manager.submit_pereval(request.data)
+        return Response(result, status=result.get('status', 200))
 
     @swagger_auto_schema(
         operation_description="Получение данных о перевале по ID",
@@ -72,7 +72,18 @@ class SubmitDataAPI(APIView):
         }
     )
     def get(self, request, pk=None):
+        manager = PerevalManager()
         if pk:
-            manager = PerevalManager()
             result = manager.get_pereval_by_id(pk)
             return Response(result, status=result.get('status', 200))
+        else:
+            email = request.query_params.get('user__email')
+            if email:
+                result = manager.get_perevals_by_email(email)
+                return Response(result, status=result.get('status', 200))
+            return Response({'message': 'Email not provided'}, status=400)
+
+    def patch(self, request, pk=None):
+        manager = PerevalManager()
+        result = manager.update_pereval(pk, request.data)
+        return Response(result, status=result.get('status', 200))
