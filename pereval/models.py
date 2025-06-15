@@ -6,7 +6,7 @@ class User(models.Model):
     email = models.EmailField(unique=True, validators=[EmailValidator()])
     fam = models.CharField(max_length=150, verbose_name='Фамилия')
     name = models.CharField(max_length=150, verbose_name='Имя')
-    otc = models.CharField(max_length=150, verbose_name='Отчество')
+    otc = models.CharField(max_length=150, verbose_name='Отчество', blank=True, default='')
     phone = models.CharField(max_length=20, verbose_name='Телефон')
 
     class Meta:
@@ -45,7 +45,7 @@ class Level(models.Model):
 
 
 class Image(models.Model):
-    data = models.BinaryField(verbose_name='Изображение')
+    data = models.ImageField(upload_to='pereval_images/', verbose_name='Изображение')
     title = models.CharField(max_length=255, verbose_name='Название')
     date_added = models.DateTimeField(auto_now_add=True, verbose_name='Дата добавления')
 

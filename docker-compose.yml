@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build: .
@@ -10,6 +8,8 @@ services:
       - FSTR_DB_PORT=5432
       - FSTR_DB_LOGIN=postgres
       - FSTR_DB_PASS=postgres
+    volumes:
+      - ./media:/app/media
     depends_on:
       - db
 
