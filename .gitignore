@@ -53,4 +53,6 @@ general.log
 errors.log
 security.log
 
-/media/
+
+media/pereval_images/*
+!media/pereval_images/.gitkeep
