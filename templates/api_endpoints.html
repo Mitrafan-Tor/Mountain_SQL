@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Endpoints - Mountain Passes</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .endpoint { background: #f9f9f9; border-left: 4px solid #3498db; padding: 10px 15px; margin-bottom: 15px; }
+        .method { font-weight: bold; color: #e74c3c; }
+        .path { font-family: monospace; color: #2980b9; }
+        .description { margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h1>API Endpoints</h1>
+
+    <div class="endpoint">
+        <div><span class="method">POST</span> <span class="path">/api/submitData/</span></div>
+        <div class="description">Добавить новый перевал. Требует полного набора данных о перевале, включая координаты, уровень сложности и изображения.</div>
+    </div>
+
+    <div class="endpoint">
+        <div><span class="method">GET</span> <span class="path">/api/submitData/&lt;id&gt;/</span></div>
+        <div class="description">Получить данные о конкретном перевале по его ID.</div>
+    </div>
+
+    <div class="endpoint">
+        <div><span class="method">PATCH</span> <span class="path">/api/submitData/&lt;id&gt;/</span></div>
+        <div class="description">Обновить данные перевала (только если статус "new"). Нельзя изменять данные пользователя.</div>
+    </div>
+
+    <div class="endpoint">
+        <div><span class="method">GET</span> <span class="path">/api/submitData/?user__email=&lt;email&gt;</span></div>
+        <div class="description">Получить список всех перевалов, добавленных пользователем с указанным email.</div>
+    </div>
+
+    <p>Для полной документации с возможностью тестирования запросов используйте <a href="/swagger/">Swagger UI</a> или <a href="/redoc/">ReDoc</a>.</p>
+</body>
+</html>
