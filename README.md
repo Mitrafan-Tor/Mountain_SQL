@@ -41,7 +41,7 @@ API поддерживает загрузку изображений в форм
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/yourusername/transit_point.git
+git clone https://github.com/Mitrafan-Tor/Mountain_SQL.git
 cd transit_point
 Создайте виртуальное окружение:
 

@@ -58,19 +58,19 @@ class Image(models.Model):
 
 
 class PerevalAdded(models.Model):
-    STATUS_CHOICES = [
-        ('new', 'новый'),
-        ('pending', 'в работе'),
-        ('accepted', 'принят'),
-        ('rejected', 'отклонен'),
-    ]
+    class StatusChoices(models.TextChoices):
+        NEW = 'new', 'Новый'
+        PENDING = 'pending', 'В работе'
+        ACCEPTED = 'accepted', 'Принят'
+        REJECTED = 'rejected', 'Отклонен'
+
 
     beauty_title = models.CharField(max_length=255, verbose_name='Красивое название')
     title = models.CharField(max_length=255, verbose_name='Название')
     other_titles = models.CharField(max_length=255, blank=True, null=True, verbose_name='Другие названия')
     connect = models.TextField(blank=True, null=True, verbose_name='Что соединяет')
     add_time = models.DateTimeField(auto_now_add=True, verbose_name='Дата добавления')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='new', verbose_name='Статус')
+    status = models.CharField(max_length=10, choices=StatusChoices, default='new', verbose_name='Статус')
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pereval', verbose_name='Пользователь')
     coords = models.ForeignKey(Coords, on_delete=models.CASCADE, verbose_name='Координаты')
