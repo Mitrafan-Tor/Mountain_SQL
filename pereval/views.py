@@ -173,9 +173,7 @@ class SubmitDataDetailAPI(APIView):
             500: openapi.Response('Server Error')
         }
     )
-    # def patch(self, request, pk):
-    #     result = self.manager.update_pereval(pk, request.data)
-    #     return Response(result, status=result['status'])
+    
     def patch(self, request, pk=None):
         manager = PerevalManager()
         result = manager.update_pereval(pk, request.data)
